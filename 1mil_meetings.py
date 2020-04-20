@@ -3,6 +3,7 @@ from managers import *
 import csv
 import datetime
 import time
+import os
 
 def row_to_list(row):
     # переводит ряды в список 
@@ -55,12 +56,14 @@ def push(client, manager, date, list):
         str6 =  '&RO_state=Назначено&pme_state=appoint&pme_datef=&RO_comment=&pme_comment=&pme_result=&pme_anket=&creNext=false&RO_attachList=[]&dataType=jsonp&callback=jQuery18207678261347394104_1586169441800&_=1586169726209'
         str_send = str1 + str(manager[i]) + str2 + str(client[i]) + str3 + str(date) + str4 + str5 + str6
         requests.post(str_send)
+        #print(str_send)
     report = 'Встречи на 1 млн залил в ежедневник, на этой неделе их: '
     print(report, len(client))
         
 
 if __name__ == "__main__":
     csv_path = "c:/Users/masyuk_as/projects/work/1mill.csv"
+    csv_path = os.path.join(os.path.dirname(__file__), '1mill.csv')
     with open(csv_path) as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         list_of_sales = row_to_list(reader)
