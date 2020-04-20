@@ -4,6 +4,7 @@ import csv
 import datetime
 import time
 import os
+import skype_send_message as ssm
 
 def row_to_list(row):
     # переводит ряды в список 
@@ -55,10 +56,10 @@ def push(client, manager, date, list):
         str5 = 'ОС по счету №' + list[i][1] + ' получить спецусловия и договориться о поставке.'
         str6 =  '&RO_state=Назначено&pme_state=appoint&pme_datef=&RO_comment=&pme_comment=&pme_result=&pme_anket=&creNext=false&RO_attachList=[]&dataType=jsonp&callback=jQuery18207678261347394104_1586169441800&_=1586169726209'
         str_send = str1 + str(manager[i]) + str2 + str(client[i]) + str3 + str(date) + str4 + str5 + str6
-        requests.post(str_send)
+        requests.post(str_send) #создание встречи в ежедневнике
         #print(str_send)
-    report = 'Встречи на 1 млн залил в ежедневник, на этой неделе их: '
-    print(report, len(client))
+    report = 'Встречи на 1 млн залил в ежедневник, на этой неделе их: ' + str(len(client))
+    ssm.Skype_send_to_common(report) #написание сообщения в общий чат с отчетом о количестве встреч
         
 
 if __name__ == "__main__":
