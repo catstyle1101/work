@@ -48,6 +48,8 @@ def date():
 
 def push(client, manager, date, list):
     #отправляет данные для добавления сделок в ежедневник
+    manager_sales = {}
+    manager_clients = {}
     for i in range(0, len(client)):
         str1 = 'https://ipro.etm.ru/cat/runprog.html?man=39004296&login=08mas&syf_prog=pr_meeting-rsp&withoutArchive=yes&RSPAction=A&idLabel=id&id=0x0000000005c25b0c&pme_comdoc=&pme_persons=pmp_class37^УЧел3$man-code^'
         str2 = '$cli-code^'
@@ -56,15 +58,60 @@ def push(client, manager, date, list):
         str5 = 'ОС по счету №' + list[i][1] + ' получить спецусловия и договориться о поставке.'
         str6 =  '&RO_state=Назначено&pme_state=appoint&pme_datef=&RO_comment=&pme_comment=&pme_result=&pme_anket=&creNext=false&RO_attachList=[]&dataType=jsonp&callback=jQuery18207678261347394104_1586169441800&_=1586169726209'
         str_send = str1 + str(manager[i]) + str2 + str(client[i]) + str3 + str(date) + str4 + str5 + str6
-        requests.post(str_send) #создание встречи в ежедневнике
+        #requests.post(str_send) #создание встречи в ежедневнике
         #print(str_send)
-    report = 'Встречи на 1 млн залил в ежедневник, на этой неделе их: ' + str(len(client))
-    ssm.Skype_send_to_common(report) #написание сообщения в общий чат с отчетом о количестве встреч
+        #print(list)
+        for j in managers_list:
+            #создание 2 словарей: 1. менеджер - список продаж, 2. - менеджер - список клиентов
+            if manager[i] == str(j.get('code')):
+                if j.get('fullname') not in manager_sales:
+                    val = []
+                    val.append(int(list[i][3].replace(' ', '')))
+                    manager_sales[j.get('fullname')] = val
+                    val1 = set()
+                    val1.add(list[i][0])
+                    manager_clients[j.get('fullname')] = val1
+
+                else:
+                    val = manager_sales[j.get('fullname')]
+                    val.append(int(list[i][3].replace(' ', '')))
+                    manager_sales[j.get('fullname')] = val
+                    val1.add(list[i][0])
+                    manager_clients[j.get('fullname')] = val1
+                #print(manager_clients)
+                #print(manager_sales)
+    
+    report = '(pointdownindex)' * 10 + '\n\nВстречи на 1 млн залил в ' + \
+'ежедневник, на этой неделе их: ' + str(len(client)) + '\n\n'
+    for key, value in manager_sales.items():
+        maximum = 0
+        summ = sum(value) // 1000
+        report += '(checkmark) ' + str(key) + ' выставлено счетов на сумму: ' + str(summ)
+        report += ' т.р. ' + ' количество: ' + str(len(value)) + ' шт. '
+        delete = r'{}"'
+        cli = str(manager_clients[key])
+        for k in delete:
+            cli = cli.replace(k,'')
+        else:
+            cli = cli.replace("'",'')
+        report += '\n\t\t\tклиенты: ' + cli + '\n'
+        if summ > maximum:
+            best_manager = key
+            summ = maximum
+    report += '\nСамые крупные счета выставлены менеджером:\t (goldmedal) ' + best_manager + ' Так держать!'
+
+    report += '\n' + '(pointupindex)' * 10
+    #print(report)
+    ssm.Skype_send_to_common(report)
+    
+
         
 
 if __name__ == "__main__":
+
     csv_path = "c:/Users/masyuk_as/projects/work/1mill.csv"
     csv_path = os.path.join(os.path.dirname(__file__), '1mill.csv')
+    
     with open(csv_path) as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         list_of_sales = row_to_list(reader)
