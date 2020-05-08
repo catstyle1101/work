@@ -5,6 +5,11 @@ import datetime
 import time
 import os
 import skype_send_message as ssm
+import sys, operator
+      
+def sort_table(table, col=0):
+    #сортируем данные
+    return sorted(table, key=operator.itemgetter(col))
 
 def row_to_list(row):
     # переводит ряды в список 
@@ -13,8 +18,13 @@ def row_to_list(row):
         row = str(row)
         row = row[1:-2]
         row = row.split(';')
+        #print(row)
+        if len(row) > 4:
+            row = row[:2]
         big_row.append(row)
-    #print(big_row)
+    for r in big_row:
+        if ',' in r[-1]:
+            r[-1] = r[-1][:-6]
     return big_row
 
 def client_num(row):
@@ -47,7 +57,7 @@ def date():
     return '{:02}'.format(day)+ '/' + '{:02}'.format(month) + '/' + '{:02}'.format(year)
 
 def push(client, manager, date, list):
-    #отправляет данные для добавления сделок в ежедневник
+    #отправляет данные для добавления сделок в ежедневник и в скайп
     manager_sales = {}
     manager_clients = {}
     for i in range(0, len(client)):
@@ -58,7 +68,10 @@ def push(client, manager, date, list):
         str5 = 'ОС по счету №' + list[i][1] + ' получить спецусловия и договориться о поставке.'
         str6 =  '&RO_state=Назначено&pme_state=appoint&pme_datef=&RO_comment=&pme_comment=&pme_result=&pme_anket=&creNext=false&RO_attachList=[]&dataType=jsonp&callback=jQuery18207678261347394104_1586169441800&_=1586169726209'
         str_send = str1 + str(manager[i]) + str2 + str(client[i]) + str3 + str(date) + str4 + str5 + str6
-        #requests.post(str_send) #создание встречи в ежедневнике
+        
+        
+        requests.post(str_send) #создание встречи в ежедневнике!!!!!
+        
         #print(str_send)
         #print(list)
         for j in managers_list:
@@ -78,31 +91,37 @@ def push(client, manager, date, list):
                     manager_sales[j.get('fullname')] = val
                     val1.add(list[i][0])
                     manager_clients[j.get('fullname')] = val1
-                #print(manager_clients)
-                #print(manager_sales)
-    
+    #print(manager)
+    #print(manager_sales)
+
+#создание строки в скайпе для отправки    
     report = '(pointdownindex)' * 10 + '\n\nВстречи на 1 млн залил в ' + \
 'ежедневник, на этой неделе их: ' + str(len(client)) + '\n\n'
+    maximum = 0 #переменная для определения максимальной суммы счетов
     for key, value in manager_sales.items():
-        maximum = 0
+
+        #добавление в сообщение результатов каждого менеджера.
         summ = sum(value) // 1000
         report += '(checkmark) ' + str(key) + ' выставлено счетов на сумму: ' + str(summ)
         report += ' т.р. ' + ' количество: ' + str(len(value)) + ' шт. '
         delete = r'{}"'
-        cli = str(manager_clients[key])
+        cli = str(manager_clients[key]) #приведение множества к строке
         for k in delete:
+            #удаление лишних символов
             cli = cli.replace(k,'')
         else:
             cli = cli.replace("'",'')
+
         report += '\n\t\t\tклиенты: ' + cli + '\n'
         if summ > maximum:
             best_manager = key
-            summ = maximum
-    report += '\nСамые крупные счета выставлены менеджером:\t (goldmedal) ' + best_manager + ' Так держать!'
+            maximum = summ
+    report += '\nСамые крупные счета выставлены менеджером:\t (goldmedal) ' + best_manager + '.'
+    report += '\nТеперь нужно договориться и все отгрузить.'
 
     report += '\n' + '(pointupindex)' * 10
     #print(report)
-    ssm.Skype_send_to_common(report)
+    ssm.Skype_send_to_common(report) #отправка строки
     
 
         
@@ -112,10 +131,17 @@ if __name__ == "__main__":
     csv_path = "c:/Users/masyuk_as/projects/work/1mill.csv"
     csv_path = os.path.join(os.path.dirname(__file__), '1mill.csv')
     
+    data = csv.reader(open(csv_path))
+    # function to sort according to any column.
+    # table corresponds to data and col is argument for the row number. here 5
+
+
+    
+
     with open(csv_path) as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         list_of_sales = row_to_list(reader)
-
+        list_of_sales = sort_table(list_of_sales, col=2)
         client = client_num(list_of_sales)
         manager = manager_num(list_of_sales)
         date = date() 
