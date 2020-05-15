@@ -41,10 +41,12 @@ def manager_num(row):
     # подбирает код менеджера по фамилии
     manager_num = []
     for i in row:
+        spam = 0
         val = i[2].strip()
         for j in managers_list:
                 if val == j.get('fullname'):
                     manager_num.append(str(j.get('code')))
+
     return manager_num
 
 def date():
@@ -58,6 +60,8 @@ def date():
 
 def push(client, manager, date, list):
     #отправляет данные для добавления сделок в ежедневник и в скайп
+    if not len(client) == len(manager):
+        return print('Есть менеджер, которого нет в списке!')
     manager_sales = {}
     manager_clients = {}
     for i in range(0, len(client)):
@@ -67,6 +71,7 @@ def push(client, manager, date, list):
         str4 = '&RO_theme=Развитие продаж&pme_theme=ВТ10&RO_subtheme=Развитие клиентов S и A&pme_subtheme=ВТ10А5&RO_type=Встреча с партнёром&pme_type=ВМ10&RO_territory=По всем&pme_territory=&pme_task='
         str5 = 'ОС по счету №' + list[i][1] + ' получить спецусловия и договориться о поставке.'
         str6 =  '&RO_state=Назначено&pme_state=appoint&pme_datef=&RO_comment=&pme_comment=&pme_result=&pme_anket=&creNext=false&RO_attachList=[]&dataType=jsonp&callback=jQuery18207678261347394104_1586169441800&_=1586169726209'
+        
         str_send = str1 + str(manager[i]) + str2 + str(client[i]) + str3 + str(date) + str4 + str5 + str6
         
         
